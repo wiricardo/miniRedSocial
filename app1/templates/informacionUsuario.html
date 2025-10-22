@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Perfil - MiRed{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4 text-center">
+                        {% if perfil and perfil.fotoPerfil %}
+                            <img src="{{ perfil.fotoPerfil.url }}" class="img-fluid rounded-circle border border-3 border-primary" style="width:180px; height:180px; object-fit:cover;">
+                        {% else %}
+                            <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="img-fluid rounded-circle border border-3 border-primary" style="width:180px; height:180px; object-fit:cover;">
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <h3 class="text-primary">{{ user.first_name }} {{ user.last_name }}</h3>
+                        <p class="text-muted mb-1">@{{ user.username }}</p>
+                        <p class="mb-1"><i class="fa-solid fa-briefcase"></i> {{ perfil.profesion|default:"Sin profesión" }}</p>
+                        <p class="mb-1"><i class="fa-solid fa-envelope"></i> {{ user.email }}</p>
+                        <p class="mb-1"><i class="fa-solid fa-phone"></i> {{ perfil.nroCelular|default:"No registrado" }}</p>
+                        <p><i class="fa-solid fa-circle-info"></i> {{ perfil.perfilUsuario|default:"Sin descripción" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Publicaciones del usuario -->
+<div class="mt-5">
+    <h4 class="text-center text-primary mb-4">
+        <i class="fa-solid fa-newspaper"></i> Mis publicaciones
+    </h4>
+
+    <div class="text-center mb-4">
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalPublicacion">
+            <i class="fa-solid fa-pen"></i> Nueva publicación
+        </button>
+    </div>
+
+    {% if publicaciones %}
+        <div class="d-flex flex-column align-items-center">
+            {% for pub in publicaciones %}
+                <div class="card mb-4 shadow-sm w-75">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-primary">{{ pub.titulo|default:"(Sin título)" }}</h5>
+                        <p class="card-text">{{ pub.descripcion }}</p>
+
+                        {% if pub.imagen %}
+                            <div class="d-flex justify-content-center mb-3">
+                                <img src="{{ pub.imagen.url }}" class="img-fluid rounded shadow-sm" style="max-width:400px; border-radius:15px;">
+                            </div>
+                        {% endif %}
+
+                        <p class="text-muted small">Publicado el {{ pub.fecha_creacion|date:"d M Y H:i" }}</p>
+
+                        <form method="post" action="{% url 'app1:eliminarPublicacion' pub.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fa-solid fa-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-muted">Aún no tienes publicaciones 📝</p>
+    {% endif %}
+</div>
+
+<!-- Modal para nueva publicación -->
+<div class="modal fade" id="modalPublicacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'app1:crearPublicacion' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear nueva publicación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Título</label>
+                        <input type="text" class="form-control" name="titulo">
+                    </div>
+                    <div class="mb-3">
+                        <label>Descripción</label>
+                        <textarea class="form-control" rows="3" name="descripcion" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Imagen (opcional)</label>
+                        <input type="file" class="form-control" name="imagen">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Publicar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

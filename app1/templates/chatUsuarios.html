@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat entre usuarios</title>
+        <!-- Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- React -->
+        <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    </head>
+    <body class="container mt-4">
+        <a class="btn btn-light me-2" href="{% url 'app1:feedPublicaciones' %}">Regresar</a>
+        <h2 class="text-center mb-4">Chats entre usuarios</h2>
+        <div id="chatApp"></div>
+
+        <script type="text/babel">
+            function ChatPrivado({ usuario })
+            {
+                const [mensajes, setMensajes] = React.useState([])
+                const [nuevoMensaje, setNuevoMensaje] = React.useState("")
+
+                React.useEffect(()=>{
+                    cargar();
+                    const intervalo = setInterval(cargar, 1000);
+                    return () => clearInterval(intervalo);
+                },[usuario])
+
+                function cargar()
+                {
+                    fetch(`/api/conversacion/${usuario.id}/`)
+                    .then(res => res.json())
+                    .then(data => setMensajes(data))
+                }
+
+                function enviar()
+                {
+                    if (nuevoMensaje.trim() !== '')
+                    {
+                        fetch(`/api/enviar/${usuario.id}/`,{
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({mensaje: nuevoMensaje})
+                        })
+                        .then(()=>{
+                            setNuevoMensaje('')
+                            cargar()
+                        })
+                    }
+
+                }
+
+                function exportarPdf()
+                {
+                    fetch(`/api/exportarChat/${usuario.id}/`)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob)
+                        const hpe = document.createElement('a')
+                        hpe.href = url;
+                        hpe.download = `chat_con_${usuario.username}.pdf`
+                        document.body.appendChild(hpe)
+                        hpe.click()
+                        hpe.remove()
+                    })
+                }
+
+                return (
+                        <div>
+                            <div className="d-flex justify-contect-center aligh-items-center">
+                                <h5>Conversion con {usuario.username}</h5>
+                                <button className="btn btn-danger" onClick={exportarPdf}>
+                                    Exportar chat    
+                                </button>
+                            </div>
+
+                            <div className="border p-3 mb-3 chat-box">
+                                {mensajes.map((msg, id)=>(
+                                    <div key={id}>
+                                        <strong>{msg.emisor} :</strong> {msg.contenido}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="input-group">
+                                <input className="form-control"
+                                        value = {nuevoMensaje}
+                                        onChange={e => setNuevoMensaje(e.target.value)}/>
+                                <button className="btn btn-primary" onClick={enviar}>Enviar</button>
+                            </div>
+                        </div>
+                )
+            }
+
+
+            function ChatApp() {
+                const [usuarios, setUsuarios] = React.useState([])
+                const [chatActivo, setChatActivo] = React.useState(null)
+
+                React.useEffect(() => {
+                    fetch("/api/usuarios/")
+                    .then(response => response.json())
+                    .then(data => setUsuarios(data))
+                },[])
+
+                return (
+                    <div className='row'>
+                        <div className="col-4 border-end">
+                            <h5>Usuarios disponibles</h5>
+                            <ul className="list-group">
+                                {
+                                    usuarios.map(usr => (
+                                        <li key={usr.id} className='list-group-item list-group-item-action cursor-pointer' onClick={()=>setChatActivo(usr)}>
+                                            <i className="fa fa-user"></i> {usr.username}
+                                        </li>
+                                    ))
+                                }
+                            </ul>
+                        </div>
+                        <div className="col-8">
+                            {chatActivo ? (
+                                    <ChatPrivado usuario={chatActivo}/>
+                                ) : (
+                                    <p className="text-muted">Selecciona un usuario para chatear</p>
+                                )
+                            }
+                        </div>
+                    </div>
+                )
+            }
+
+            ReactDOM.render(<ChatApp />, document.getElementById('chatApp'))
+        </script>
+    </body>
+</html>

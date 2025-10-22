@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Registro - MiRed{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h3 class="text-center text-primary mb-4"><i class="fa-solid fa-user-plus"></i> Crear cuenta</h3>
+
+                <form method="post" enctype="multipart/form-data" action="{% url 'app1:registroUsuario' %}">
+                    {% csrf_token %}
+                    
+                    <!-- Datos de login -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre de usuario</label>
+                            <input type="text" name="username" id="usernameInput" class="form-control" required>
+                            <div id="mensajeUsuario" class="form-text"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <!-- Datos personales -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" name="nombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Apellido</label>
+                            <input type="text" name="apellido" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <!-- Contacto -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Correo electrónico</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Profesión</label>
+                            <input type="text" name="profesion" class="form-control">
+                        </div>
+                    </div>
+
+                    <!-- Datos adicionales -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Número de celular</label>
+                            <input type="text" name="nroCelular" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Foto de perfil</label>
+                            <input type="file" name="fotoPerfil" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Perfil del usuario</label>
+                        <textarea name="perfilUsuario" rows="3" class="form-control" placeholder="Escribe algo sobre ti..."></textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" id="btnRegistrar" class="btn btn-primary">
+                            <i class="fa-solid fa-user-plus"></i> Registrar usuario
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <p>¿Ya tienes cuenta? <a href="{% url 'app1:ingresoUsuario' %}">Inicia sesión</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
