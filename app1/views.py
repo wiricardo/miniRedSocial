@@ -27,7 +27,7 @@ def ingresoUsuario(request):
             return HttpResponseRedirect(reverse('app1:ingresoUsuario'))
     return render(request, 'ingresoUsuario.html')
 
- 
+
 def registroUsuario(request):
     if request.method == 'POST':
         username = request.POST.get('username')
