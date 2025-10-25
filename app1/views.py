@@ -137,12 +137,20 @@ def devolverPublicacion(request):
             # PREGUNTA 2 - CARGAR LAS RESPUESTAS A LOS COMENTARIOS
             # SECCION DEL EXAMEN FINAL PARA AGREGAR LAS RESPUESTAS:
 
-            """
-            CREAR EL OBJETO respuestas QUE CONTIENE LOS COMENTARIOS QUE TIENEN EL ATRIBUTO respuesta_a CON 
-            EL VALOR DEL OBJETO comentarioInfo
-            ITERA EN TODAS LAS RESPUESTAS PARA PODER ANEXAR LA INFORMACION EN LA LISTA lista_respuestas
-            LOS DATOS A ANEXAR SON EL AUTOR, LA DESCRIPCION O CONTENIDO, EL ID DE LA RESPUESTA Y LA FECHA
-            """
+            
+            #CREAR EL OBJETO respuestas QUE CONTIENE LOS COMENTARIOS QUE TIENEN EL ATRIBUTO respuesta_a CON 
+            respuestas = comentario.objects.filter(respuesta_a=comentarioInfo).order_by('fecha_creacion')
+
+            #EL VALOR DEL OBJETO comentarioInfo
+            #ITERA EN TODAS LAS RESPUESTAS PARA PODER ANEXAR LA INFORMACION EN LA LISTA lista_respuestas
+            #LOS DATOS A ANEXAR SON EL AUTOR, LA DESCRIPCION O CONTENIDO, EL ID DE LA RESPUESTA Y LA FECHA
+            for resp in respuestas:
+                lista_respuestas.append({
+                    'autor': f"{resp.autoCom.first_name} {resp.autoCom.last_name}",
+                    'descripcion': resp.descripcion,
+                    'id': resp.id,
+                    'fecha': resp.fecha_creacion.strftime("%d/%m/%Y %H:%M")
+                })
             
             # FIN SECCION DE AGREGAR LAS RESPUESTAS
 
@@ -262,12 +270,35 @@ def exportarChat(request, idUsuario):
 def publicarRespuestaComentario(request):
     # FUNCION PARA RECIBIR EL COMENTARIO DESDE EL FRONTEND
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        """
-        CARGAR LOS DATOS JSON
-        EXTRAER EL CONTENIDO DE LA RESPUESTA, EL ID DEL COMENTARIO PADRE Y DE LA PUBLICACION PADRE
-        OBTENER LOS OBJETOS DE LA BASE DE DATOS
-        CREAR EL NUEVO OBJETO COMENTARIO CON EL ATRIBUTO RESPUESTA_A CONFIGURADO ADECUADAMENTE
-        """
+        
+        # CARGAR LOS DATOS JSON
+        datos = json.loads(request.body.decode('utf-8'))
+
+
+        # EXTRAER EL CONTENIDO DE LA RESPUESTA, EL ID DEL COMENTARIO PADRE Y DE LA PUBLICACION PADRE
+        textoRespuesta = datos.get('respuesta')
+        idComentarioPadre = datos.get('idComentario')
+        idPublicacionPadre = datos.get('idPublicacion')
+
+
+
+        # OBTENER LOS OBJETOS DE LA BASE DE DATOS
+        
+        objComentarioPadre = comentario.objects.get(id=idComentarioPadre)
+        objPublicacion = publicacion.objects.get(id=idPublicacionPadre)
+
+
+        # CREAR EL NUEVO OBJETO COMENTARIO CON EL ATRIBUTO RESPUESTA_A CONFIGURADO ADECUADAMENTE
+        comentario.objects.create(
+            descripcion=textoRespuesta,
+            pubRel=objPublicacion,
+            autoCom=request.user,
+            respuesta_a=objComentarioPadre
+        )
+
+
+
+
 
         return JsonResponse({'status': 'ok'})
     return JsonResponse({'error': 'Petición inválida'}, status=400)
